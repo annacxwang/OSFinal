@@ -42,7 +42,7 @@ void newFile(char*filename,long size){
     	    printf("Fail to open file: %s\n",filename);
     	    exit(0);
     	}
-    	unsigned int* buf= malloc(size);
+    	unsigned int* buf= calloc(size,1);
     	srandom(time(NULL));
     	for(int i = 0; i<size/sizeof(int);i++){
     	    buf[i] = random();
@@ -64,7 +64,7 @@ void readFile(char* filename,long buf_size,double* time, unsigned int* result ){
     	    printf("Fail to open file: %s\n",filename);
     	    exit(0);
     	}
-    	unsigned int* buf= malloc(buf_size);
+    	unsigned int* buf= calloc(buf_size,1);
     	start = now();
     	long byte_read = read(fd,buf,buf_size);
     	end = now();
@@ -103,11 +103,15 @@ int main(int argc,char * argv[])
     //newFile(filename,block_ct*block_size);
     //readFile(filename,block_ct*block_size,&time,&result);
     //printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
+    long file_size;
     while(time < 5000.0 || time >15000.0){
-    	
-    	newFile(filename,block_ct*block_size);
-    	readFile(filename,block_ct*block_size,&time,&result);
-    	//printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
+    	if(block_ct*block_size>(1.2*pow(10,9))){
+    	    break;
+    	}
+    	file_size = block_ct*block_size;
+    	newFile(filename,file_size);
+    	readFile(filename,file_size,&time,&result);
+    	//printf("reading time is %f seconds, size is %ld\n",time/1000.0,file_size);
     	if(time <5000.0){
     	    block_ct *=2;
     	}
@@ -115,16 +119,13 @@ int main(int argc,char * argv[])
     	    block_ct *=2;
     	    block_ct /=3;
     	}
-    	
     }
     
-    
-    
-    double MiB = block_ct*block_size / pow(2.0,20.0);
+    double MiB = file_size / pow(2.0,20.0);
     double seconds = time /1000.0;
     //printf("%f MiB %f seconds\n",MiB,seconds);
     printf("xor result is %08x\n",result);
-    printf("size of file is %ld bytes\n",block_ct*block_size);
+    printf("size of file is %ld bytes\n",file_size);
     printf("reading speed is %f MiB/s\n",MiB/seconds);
     
     
