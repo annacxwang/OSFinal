@@ -40,6 +40,7 @@ int main(int argc,char * argv[])
     
     if(argc != 5){
     	printf("Check usage : ./run <filename> [-r|-w] <block_size> <block_count>\n");
+        return 0;
     }
     //1- filename 2-rw 3- block size 4- block count
     if(!isNumber(argv[3]) || !isNumber(argv[4])){
