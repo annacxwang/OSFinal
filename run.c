@@ -65,7 +65,11 @@ int main(int argc,char * argv[])
     	    printf("%d ",buf[i]);
     	}
     	**/
-    	printf("xor result is %d\n",xorbuf(buf,buf_size/sizeof(int)));
+    	printf("xor result is %08x\n",xorbuf(buf,buf_size/sizeof(int)));
+    	int SIZE = buf_size/sizeof(int);
+    	unsigned int xor1 = xorbuf(buf, SIZE / 2);
+    	unsigned int xor2 = xorbuf(buf + SIZE / 2, SIZE / 2);
+    	printf("xor result is %08x\n",xor1^xor2);
     	close(fd);
     
     }
