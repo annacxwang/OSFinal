@@ -9,7 +9,7 @@
 #include <math.h>
 
 
-char * filename = "temp";
+
 int isNumber(char in[]){
 
     for(int i=0;in[i]!=0;i++){
@@ -36,7 +36,7 @@ double now(){
 
 }
 
-void newFile(long size){
+void newFile(char*filename,long size){
 	int fd = open(filename,O_RDWR|O_CREAT|O_TRUNC,S_IRWXU);
     	if(fd == -1){
     	    printf("Fail to open file: %s\n",filename);
@@ -56,7 +56,8 @@ void newFile(long size){
     	close(fd);
 }
 
-void readFile(long buf_size,double* time, unsigned int* result ){
+void readFile(char* filename,long buf_size,double* time, unsigned int* result ){
+	double start,end;
 	int fd = open(filename,O_RDONLY);
     	if(fd == -1){
     	    printf("Fail to open file: %s\n",filename);
@@ -92,25 +93,25 @@ int main(int argc,char * argv[])
     	printf("Check usage : ./run2 <filename> <block_size>\n");
     	return 0;
     }
-    
+    char *filename = argv[1];
     long block_size = atoi(argv[2]);
     
     long block_ct = 1;
     double time;
     unsigned int result;
-    newFile(block_ct*block_size);
-    readFile(block_ct*block_size,&time,&result);
+    newFile(filename,block_ct*block_size);
+    readFile(filename,block_ct*block_size,&time,&result);
     while(time < 5000.0){
     	block_ct *=2;
-    	newFile(block_ct*block_size);
-    	readFile(block_ct*block_size,&time,&result);
+    	newFile(filename,block_ct*block_size);
+    	readFile(filename,block_ct*block_size,&time,&result);
     }
     
     while(time > 15000.0){
     	block_ct *=2;
     	block_ct /=3;
-    	newFile(block_ct*block_size);
-    	readFile(block_ct*block_size,&time,&result);
+    	newFile(filename,block_ct*block_size);
+    	readFile(filename,block_ct*block_size,&time,&result);
     }
     
     
