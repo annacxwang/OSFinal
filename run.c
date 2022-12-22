@@ -87,6 +87,7 @@ int main(int argc,char * argv[])
     	double seconds = (end - start) /1000.0;
     	//printf("%f MiB %f seconds\n",MiB,seconds);
     	printf("reading speed is %f MiB/s\n",MiB/seconds);
+        free(buf);
     	close(fd);
     
     }
@@ -117,6 +118,7 @@ int main(int argc,char * argv[])
     	double seconds = (end - start) /1000.0;
     	//printf("%f MB %f seconds\n",MB,seconds);
     	printf("writing speed is %f MB/s\n",MB/seconds);
+        free(buf);
     	close(fd);
     }
     else{
