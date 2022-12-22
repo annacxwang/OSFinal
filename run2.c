@@ -40,7 +40,7 @@ void newFile(char*filename,long size){
 	int fd = open(filename,O_RDWR|O_CREAT|O_TRUNC,S_IRWXU);
     	if(fd == -1){
     	    printf("Fail to open file: %s\n",filename);
-    	    return;
+    	    exit(0);
     	}
     	unsigned int* buf= malloc(size);
     	srandom(time(NULL));
@@ -51,7 +51,7 @@ void newFile(char*filename,long size){
     	
     	if (byte_written == -1){
     	    printf("Fail to write to: %s\n",filename);
-    	    return;
+    	    exit(0);
     	}
     	close(fd);
 }
@@ -61,7 +61,7 @@ void readFile(char* filename,long buf_size,double* time, unsigned int* result ){
 	int fd = open(filename,O_RDONLY);
     	if(fd == -1){
     	    printf("Fail to open file: %s\n",filename);
-    	    return;
+    	    exit(0);
     	}
     	unsigned int* buf= malloc(buf_size);
     	start = now();
@@ -70,7 +70,7 @@ void readFile(char* filename,long buf_size,double* time, unsigned int* result ){
     	
     	if (byte_read == -1){
     	    printf("Fail to read from: %s\n",filename);
-    	    return;
+    	    exit(0);
     	}
 	*time = end-start;
     	int SIZE = buf_size/sizeof(int);
@@ -114,7 +114,7 @@ int main(int argc,char * argv[])
     	readFile(filename,block_ct*block_size,&time,&result);
     }
     
-    
+    printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
     double MiB = block_ct*block_size / pow(2.0,20.0);
     double seconds = time /1000.0;
     //printf("%f MiB %f seconds\n",MiB,seconds);
