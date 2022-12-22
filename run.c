@@ -54,16 +54,18 @@ int main(int argc,char * argv[])
     	    return 0;
     	}
     	unsigned int* buf= malloc(buf_size);
-    	int byte_read = read(fd,buf,buf_size);
+    	long byte_read = read(fd,buf,buf_size);
     	if (byte_read == -1){
     	    printf("Fail to read from: %s\n",argv[1]);
     	    return 0;
     	}
-    	printf("%d\n",byte_read);
+    	printf("%ld\n",byte_read);
+    	/**
     	for(int i  =0;i<buf_size/sizeof(int);i++){
     	    printf("%d ",buf[i]);
     	}
-    	printf("xor result is %d",xorbuf(buf,buf_size/sizeof(int)));
+    	**/
+    	printf("xor result is %d\n",xorbuf(buf,buf_size/sizeof(int)));
     	close(fd);
     
     }
