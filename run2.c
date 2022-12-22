@@ -53,6 +53,7 @@ void newFile(char*filename,long size){
     	    printf("Fail to write to: %s\n",filename);
     	    exit(0);
     	}
+    	free(buf);
     	close(fd);
 }
 
@@ -78,7 +79,7 @@ void readFile(char* filename,long buf_size,double* time, unsigned int* result ){
     	unsigned int xor2 = xorbuf(buf + SIZE / 2, SIZE / 2);
     	//printf("xor result is %08x\n",xor1^xor2);
     	*result= xor1^xor2;
-    	
+    	free(buf);
     	close(fd);
 }
 
@@ -101,10 +102,12 @@ int main(int argc,char * argv[])
     unsigned int result;
     newFile(filename,block_ct*block_size);
     readFile(filename,block_ct*block_size,&time,&result);
+    printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
     while(time < 5000.0){
     	block_ct *=2;
     	newFile(filename,block_ct*block_size);
     	readFile(filename,block_ct*block_size,&time,&result);
+    	printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
     }
     
     while(time > 15000.0){
@@ -112,9 +115,10 @@ int main(int argc,char * argv[])
     	block_ct /=3;
     	newFile(filename,block_ct*block_size);
     	readFile(filename,block_ct*block_size,&time,&result);
+    	printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
     }
     
-    printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
+    
     double MiB = block_ct*block_size / pow(2.0,20.0);
     double seconds = time /1000.0;
     //printf("%f MiB %f seconds\n",MiB,seconds);
