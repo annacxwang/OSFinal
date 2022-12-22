@@ -98,25 +98,26 @@ int main(int argc,char * argv[])
     long block_size = atoi(argv[2]);
     
     long block_ct = 1;
-    double time;
+    double time = 0.0;
     unsigned int result;
-    newFile(filename,block_ct*block_size);
-    readFile(filename,block_ct*block_size,&time,&result);
-    printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
-    while(time < 5000.0){
-    	block_ct *=2;
+    //newFile(filename,block_ct*block_size);
+    //readFile(filename,block_ct*block_size,&time,&result);
+    //printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
+    while(time < 5000.0 || time >15000.0){
+    	
     	newFile(filename,block_ct*block_size);
     	readFile(filename,block_ct*block_size,&time,&result);
-    	printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
+    	//printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
+    	if(time <5000.0){
+    	    block_ct *=2;
+    	}
+    	else if(time > 15000.0){
+    	    block_ct *=2;
+    	    block_ct /=3;
+    	}
+    	
     }
     
-    while(time > 15000.0){
-    	block_ct *=2;
-    	block_ct /=3;
-    	newFile(filename,block_ct*block_size);
-    	readFile(filename,block_ct*block_size,&time,&result);
-    	printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
-    }
     
     
     double MiB = block_ct*block_size / pow(2.0,20.0);
