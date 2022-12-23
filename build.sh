@@ -10,4 +10,5 @@ gcc run4.c -o run4
 ./4.sh
 gcc run5.c -o run5
 ./5.sh
+gcc fast.c -o fast
 done
