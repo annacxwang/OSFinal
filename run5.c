@@ -54,13 +54,26 @@ void readFile(char* filename,long block_size,long block_ct,double* time){
     	
     	printf("%ld bytes read in %f milliseconds\n",total_read,end-start);
     	printf("reading speed is %f MiB/s\n",MiB/seconds);
-    	printf("performance is %f B/s\n",total_read/seconds)
+    	printf("read performance is %f B/s\n",total_read/seconds);
         free(buf);
     	close(fd);
 	
 }
 
-void seekLoop();
+void seekLoop(char* filename,long file_size,double* time){
+	double start,end;
+	int fd = open(filename,O_RDONLY);
+	int i=0;
+	start = now();
+	do{
+    		i +=1;
+    	}while(lseek(fd,1,SEEK_CUR)!=file_size);
+    	end = now();
+    	*time = (end - start)/1000.0; //time elapsed in seconds
+    	printf("lseek performance is %f B/s\n",file_size/(*time));
+	close(fd);
+	//printf("%d\n",i);
+}
 
 int main(int argc,char * argv[])
 {
@@ -84,8 +97,8 @@ int main(int argc,char * argv[])
     FILE* f = fopen(argv[2],"a+");
     readFile(argv[1],1,file_size,&time); 
     fprintf(f,"%ld,%f,",file_size,time);
-    //
-    fprintf(f,"%f,",time);
+    seekLoop(argv[1],file_size,&time);
+    fprintf(f,"%f\n",time);
     
     fclose(f);
    return 0;

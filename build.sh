@@ -8,5 +8,6 @@ gcc run3.c -o run3
 ./3.sh
 gcc run4.c -o run4
 ./4.sh
-
+gcc run5.c -o run5
+./5.sh
 done
