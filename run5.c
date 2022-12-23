@@ -18,13 +18,6 @@ int isNumber(char in[]){
     return 1;
 }
 
-unsigned int xorbuf(unsigned int *buffer, int size) {
-    unsigned int result = 0;
-    for (int i = 0; i < size; i++) {
-        result ^= buffer[i];
-    }
-    return result;
-}
 
 double now(){
     struct timeval tv;
@@ -33,7 +26,7 @@ double now(){
 
 }
 
-void readFile(char* filename,long block_size,long block_ct,double* time, unsigned int* result, double* performance){
+void readFile(char* filename,long block_size,long block_ct,double* time){
 	double start,end;
 	long buf_size = block_size*block_ct;
 	int fd = open(filename,O_RDONLY);
@@ -54,19 +47,20 @@ void readFile(char* filename,long block_size,long block_ct,double* time, unsigne
     	    total_read += byte_read;
     	}
     	end = now();
-    	*time = end - start;
-	*result = xorbuf(buf,buf_size/sizeof(int));
+
     	double MiB = total_read / pow(2.0,20.0);
     	double seconds = (end - start) /1000.0;
-    	//printf("%f MiB %f seconds\n",MiB,seconds);
+    	*time = seconds; //time elapsed in seconds
     	
     	printf("%ld bytes read in %f milliseconds\n",total_read,end-start);
-    	*performance = MiB/seconds;
-    	printf("reading speed is %f MiB/s\n",*performance);
+    	printf("reading speed is %f MiB/s\n",MiB/seconds);
+    	printf("performance is %f B/s\n",total_read/seconds)
         free(buf);
     	close(fd);
 	
 }
+
+void seekLoop();
 
 int main(int argc,char * argv[])
 {
@@ -74,30 +68,25 @@ int main(int argc,char * argv[])
     * passed between the double quotes.
     */
     
-    if(argc != 5){
-    	printf("Check usage : ./run <filename> <csv><block_size> <block_count>\n");
+    if(argc != 4){
+    	printf("Check usage : ./run <filename> <csv> <file_size>\n");
         return 0;
     }
-    //1- filename 2-csv 3- block size 4- block count
-    if(!isNumber(argv[3]) || !isNumber(argv[4])){
-    	printf("Check usage : ./run <filename> <csv><block_size> <block_count>\n");
-    	return 0;
+    //1- filename 2-csv 3- file_size
+    if(!isNumber(argv[3]) ){
+    	printf("Check usage : ./run <filename> <csv> <file_size>\n");
+        return 0;
     }
     
-    long block_size = atoi(argv[3]);
-    if(block_size % 4 != 0){
-    	printf("Block size needs to be multiple of 4!\n");
-    	return 0;
-    }
-    long block_ct = atoi(argv[4]);
-    long buf_size = block_size * block_ct; // file size in bytes
+    long file_size = atoi(argv[3]); // file size in bytes
 
     double time = 0.0;
-    double performance;
-    unsigned int result;
     FILE* f = fopen(argv[2],"a+");
-    readFile(argv[1],block_size,block_ct,&time,&result,&performance); 
-    fprintf(f,"%ld,%f\n",block_size,performance);
+    readFile(argv[1],1,file_size,&time); 
+    fprintf(f,"%ld,%f,",file_size,time);
+    //
+    fprintf(f,"%f,",time);
+    
     fclose(f);
    return 0;
 }

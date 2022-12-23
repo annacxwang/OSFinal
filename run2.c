@@ -36,51 +36,75 @@ double now(){
 
 }
 
-void newFile(char*filename,long size){
+void newFile(char*filename,long block_size,long block_ct){
+	double start,end;
 	int fd = open(filename,O_RDWR|O_CREAT|O_TRUNC,S_IRWXU);
     	if(fd == -1){
     	    printf("Fail to open file: %s\n",filename);
     	    exit(0);
     	}
-    	unsigned int* buf= calloc(size,1);
+    	long buf_size = block_size*block_ct;
+    	unsigned int* buf= malloc(buf_size);
     	srandom(time(NULL));
-    	for(int i = 0; i<size/sizeof(int);i++){
+    	for(long i = 0; i<buf_size/sizeof(unsigned int);i++){
     	    buf[i] = random();
     	}
-    	long byte_written = write(fd,buf,size);
     	
-    	if (byte_written == -1){
+    	start = now();
+
+    	long byte_written,total_written;
+    	for(long i =0;i<block_ct;i++){
+    	    byte_written = write(fd,buf+i*block_size/sizeof(int),block_size);
+    	    if (byte_written == -1){
     	    printf("Fail to write to: %s\n",filename);
     	    exit(0);
+    		}
+    	    total_written += byte_written;
     	}
-    	free(buf);
+    	end = now();
+    	
+    	/**
+    	printf("%ld bytes written in %f milliseconds\n",total_written,end-start);
+    	
+    	double MB = total_written / pow(10.0,6.0);
+    	double seconds = (end - start) /1000.0;
+    	//printf("%f MB %f seconds\n",MB,seconds);
+    	printf("writing speed is %f MB/s\n",MB/seconds);
+    	**/
+        free(buf);
     	close(fd);
 }
 
-void readFile(char* filename,long buf_size,double* time, unsigned int* result ){
+void readFile(char* filename,long block_size,long block_ct,double* time, unsigned int* result ){
 	double start,end;
+	long buf_size = block_size*block_ct;
 	int fd = open(filename,O_RDONLY);
     	if(fd == -1){
     	    printf("Fail to open file: %s\n",filename);
     	    exit(0);
     	}
-    	unsigned int* buf= calloc(buf_size,1);
+    	unsigned int* buf= (unsigned int*) malloc(buf_size);
     	start = now();
-    	long byte_read = read(fd,buf,buf_size);
-    	end = now();
-    	
-    	if (byte_read == -1){
+    	long byte_read,total_read;
+    	for(long i =0;i<block_ct;i++){
+    	    byte_read = read(fd,buf+i*block_size/sizeof(int),block_size);
+    	    if (byte_read == -1){
     	    printf("Fail to read from: %s\n",filename);
     	    exit(0);
+    		}
+    	    total_read += byte_read;
     	}
-	*time = end-start;
-    	int SIZE = buf_size/sizeof(int);
-    	unsigned int xor1 = xorbuf(buf, SIZE / 2);
-    	unsigned int xor2 = xorbuf(buf + SIZE / 2, SIZE / 2);
-    	//printf("xor result is %08x\n",xor1^xor2);
-    	*result= xor1^xor2;
-    	free(buf);
+    	end = now();
+    	*time = end - start;
+	*result = xorbuf(buf,buf_size/sizeof(int));
+    	double MiB = total_read / pow(2.0,20.0);
+    	double seconds = (end - start) /1000.0;
+    	//printf("%f MiB %f seconds\n",MiB,seconds);
+    	
+    	//printf("reading speed is %f MiB/s\n",MiB/seconds);
+        free(buf);
     	close(fd);
+	
 }
 
 int main(int argc,char * argv[])
@@ -96,7 +120,10 @@ int main(int argc,char * argv[])
     }
     char *filename = argv[1];
     long block_size = atoi(argv[2]);
-    
+    if(block_size % 4 != 0){
+    	printf("Block size needs to be multiple of 4!\n");
+    	return 0;
+    }
     long block_ct = 1;
     double time = 0.0;
     unsigned int result;
@@ -104,13 +131,13 @@ int main(int argc,char * argv[])
     //readFile(filename,block_ct*block_size,&time,&result);
     //printf("reading time is %f seconds, block count is %ld\n",time/1000.0,block_ct);
     long file_size;
-    while(time < 5000.0 || time >15000.0){
+    while(time < 5000.0 ){
     	if(block_ct*block_size>(1.2*pow(10,9))){
     	    break;
     	}
     	file_size = block_ct*block_size;
-    	newFile(filename,file_size);
-    	readFile(filename,file_size,&time,&result);
+    	newFile(filename,block_size,block_ct);
+    	readFile(filename,block_size,block_ct,&time,&result);
     	//printf("reading time is %f seconds, size is %ld\n",time/1000.0,file_size);
     	if(time <5000.0){
     	    block_ct *=2;
