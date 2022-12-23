@@ -22,7 +22,9 @@ unsigned int xorbuf(unsigned int *buffer, int size) {
     unsigned int result = 0;
     for (int i = 0; i < size; i++) {
         result ^= buffer[i];
+        //printf("xor %08x = %08x \n",buffer[i],result);
     }
+    
     return result;
 }
 
@@ -48,11 +50,15 @@ int main(int argc,char * argv[])
     	return 0;
     }
     long block_size = atoi(argv[3]);
+    
+    if(block_size % 4 != 0){
+    	printf("Block size needs to be multiple of 4!\n");
+    	return 0;
+    }
+    
     long block_ct = atoi(argv[4]);
     long buf_size = block_size * block_ct; // file size in bytes
-    if(buf_size % 4 != 0){
-    	buf_size = buf_size - (buf_size %4); 
-    }
+
     
     double start,end;
     
@@ -63,29 +69,36 @@ int main(int argc,char * argv[])
     	    printf("Fail to open file: %s\n",argv[1]);
     	    return 0;
     	}
-    	unsigned int* buf= malloc(buf_size);
+    	unsigned int* buf= (unsigned int*) malloc(buf_size);
     	start = now();
-    	long byte_read = read(fd,buf,buf_size);
-    	end = now();
-    	
-    	if (byte_read == -1){
+    	long byte_read,total_read;
+    	for(long i =0;i<block_ct;i++){
+    	    byte_read = read(fd,buf+i*block_size/sizeof(int),block_size);
+    	    if (byte_read == -1){
     	    printf("Fail to read from: %s\n",argv[1]);
     	    return 0;
+    		}
+    	    total_read += byte_read;
     	}
-    	printf("%ld bytes read in %f milliseconds\n",byte_read,end-start);
+    	end = now();
+    	
+    	printf("%ld bytes read in %f milliseconds\n",total_read,end-start);
     	/**
     	for(int i  =0;i<buf_size/sizeof(int);i++){
     	    printf("%d ",buf[i]);
     	}
     	**/
-    	//printf("xor result is %08x\n",xorbuf(buf,buf_size/sizeof(int)));
-    	int SIZE = buf_size/sizeof(int);
-    	unsigned int xor1 = xorbuf(buf, SIZE / 2);
-    	unsigned int xor2 = xorbuf(buf + SIZE / 2, SIZE / 2);
-    	printf("xor result is %08x\n",xor1^xor2);
-    	double MiB = byte_read / pow(2.0,20.0);
+    	//printf("check: 23 %d 499 %d 501 %d",buf[23],buf[499],buf[501]);
+    	
+    	printf("xor result is %08x\n",xorbuf(buf,buf_size/sizeof(int)));
+    	//int SIZE = buf_size/sizeof(int);
+    	//unsigned int xor1 = xorbuf(buf, SIZE / 2);
+    	//unsigned int xor2 = xorbuf(buf + SIZE / 2, SIZE / 2);
+    	//printf("xor result is %08x\n",xor1^xor2);
+    	double MiB = total_read / pow(2.0,20.0);
     	double seconds = (end - start) /1000.0;
     	//printf("%f MiB %f seconds\n",MiB,seconds);
+    	
     	printf("reading speed is %f MiB/s\n",MiB/seconds);
         free(buf);
     	close(fd);
@@ -100,21 +113,31 @@ int main(int argc,char * argv[])
     	}
     	unsigned int* buf= malloc(buf_size);
     	srandom(time(NULL));
-    	for(int i = 0; i<buf_size/sizeof(int);i++){
+    	for(long i = 0; i<buf_size/sizeof(unsigned int);i++){
     	    buf[i] = random();
     	}
     	
+	//printf("xor result is %08x\n",xorbuf(buf,buf_size/sizeof(int)));
+	
     	start = now();
-    	long byte_written = write(fd,buf,buf_size);
-    	end = now();
-    	
-    	if (byte_written == -1){
+    	//long byte_written = write(fd,buf,buf_size);
+    	long byte_written,total_written;
+    	for(long i =0;i<block_ct;i++){
+    	    byte_written = write(fd,buf+i*block_size/sizeof(int),block_size);
+    	    if (byte_written == -1){
     	    printf("Fail to write to: %s\n",argv[1]);
     	    return 0;
+    		}
+    	    total_written += byte_written;
+    	    //printf("%ld,%ld,%ld, total %ld\n",buf_size,i,byte_written,total_written);
     	}
-    	printf("%ld bytes written in %f milliseconds\n",byte_written,end-start);
+    	end = now();
     	
-    	double MB = byte_written / pow(10.0,6.0);
+    	//printf("check: 23 %d 499 %d 501 %d",buf[23],buf[499],buf[501]);
+    	
+    	printf("%ld bytes written in %f milliseconds\n",total_written,end-start);
+    	
+    	double MB = total_written / pow(10.0,6.0);
     	double seconds = (end - start) /1000.0;
     	//printf("%f MB %f seconds\n",MB,seconds);
     	printf("writing speed is %f MB/s\n",MB/seconds);
